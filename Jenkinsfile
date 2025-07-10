@@ -1,43 +1,30 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.9.6-eclipse-temurin-17'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     environment {
-        DOCKER_IMAGE = 'gs-rest-app'
-        CONTAINER_NAME = 'gs-rest-running'
-        APP_PORT = '777'
-        GREETING_ENDPOINT = "http://16.16.217.54:${APP_PORT}/greeting"
+        APP_IMAGE = 'gs-rest-service'
+        APP_CONTAINER = 'test-app'
+        HOST_PORT = '777'
+        CONTAINER_PORT = '8080'
+        HEALTH_URL = "http://localhost:${HOST_PORT}/greeting"
     }
 
     stages {
-        stage('Docker Check') {
+        stage('Checkout') {
             steps {
-                sh 'docker version'
+                checkout scm
             }
         }
 
-        stage('Docker Cleanup') {
+        stage('Build Docker Image') {
             steps {
-                sh '''
-                    docker rm -f ${CONTAINER_NAME} || true
-                    docker rmi ${DOCKER_IMAGE} || true
-                '''
-            }
-        }
-
-        stage('Docker Build') {
-            steps {
-                sh 'docker build -t ${DOCKER_IMAGE} .'
+                sh "docker build -t ${APP_IMAGE} ."
             }
         }
 
         stage('Run Container') {
             steps {
-                sh 'docker run -d -p ${APP_PORT}:8080 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}'
+                sh "docker run -d -p ${HOST_PORT}:${CONTAINER_PORT} --name ${APP_CONTAINER} ${APP_IMAGE}"
             }
         }
 
@@ -45,18 +32,21 @@ pipeline {
             steps {
                 sh '''
                     sleep 5
-                    curl --fail ${GREETING_ENDPOINT}
+                    curl --fail ${HEALTH_URL}
                 '''
             }
         }
     }
 
     post {
+        always {
+            sh "docker rm -f ${APP_CONTAINER} || true"
+        }
         success {
-            echo "✅ Build and deployment successful!"
+            echo "✅ Build and deploy successful!"
         }
         failure {
-            echo "💥 Build failed — proveri Docker CLI, imidž ili port."
+            echo "💥 Build failed — proveri Docker build, port binding ili health check."
         }
     }
 }
