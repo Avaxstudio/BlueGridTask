@@ -1,9 +1,5 @@
 pipeline {
-  agent {
-    docker {
-      image 'maven:3.9.4'
-    }
-  }
+  agent any
 
   stages {
     stage('Build') {
@@ -16,7 +12,7 @@ pipeline {
 
     stage('Deploy') {
       steps {
-        echo '🚀 Deploy stage stub — spreman za EC2 ili Render kada poželiš!'
+        echo '🚀 Deploy stub...'
       }
     }
   }
