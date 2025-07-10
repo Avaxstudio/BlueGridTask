@@ -1,5 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'maven:3.8.7-eclipse-temurin-17'
+        }
+    }
 
     environment {
         DOCKER_IMAGE = 'gs-rest-app'
@@ -14,7 +18,7 @@ pipeline {
         stage('Build + Test') {
             steps {
                 dir("complete") {
-                    sh '/usr/bin/mvn clean install -DskipTests=false'
+                    sh 'mvn clean install -DskipTests=false'
                 }
             }
         }
@@ -58,7 +62,7 @@ pipeline {
         }
         failure {
             echo "💥 Build failed!"
-            // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"�� Jenkins build failed!"}\' $SLACK_WEBHOOK'
+            // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"💥 Jenkins build failed!"}\' $SLACK_WEBHOOK'
         }
     }
 }
