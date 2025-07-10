@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'M3'
+    }
+
     environment {
         IMAGE_NAME = "gs-rest-app"
         CONTAINER_NAME = "gs-rest-running"
