@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'maven:3.9.6-eclipse-temurin-17'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
     environment {
         DOCKER_IMAGE = 'gs-rest-app'
@@ -9,12 +14,12 @@ pipeline {
     }
 
     stages {
-        
         stage('Docker Check') {
             steps {
-            sh 'docker version'
-    }
-}
+                sh 'docker version'
+            }
+        }
+
         stage('Docker Cleanup') {
             steps {
                 sh '''
@@ -48,10 +53,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and deploy successful!"
+            echo "✅ Build and deployment successful!"
         }
         failure {
-            echo "💥 Build failed — proveri Dockerfile, port ili health check."
+            echo "💥 Build failed — proveri Docker CLI, imidž ili port."
         }
     }
 }
