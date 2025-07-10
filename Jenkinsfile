@@ -1,23 +1,19 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.8.7-eclipse-temurin-17'
-        }
-    }
+    agent any
 
     environment {
         DOCKER_IMAGE = 'gs-rest-app'
         CONTAINER_NAME = 'gs-rest-running'
         APP_PORT = '777'
         GREETING_ENDPOINT = "http://16.16.217.54:${APP_PORT}/greeting"
-        // SLACK_WEBHOOK = credentials('slack-url') // ako želiš Slack notifikacije
+        // SLACK_WEBHOOK = credentials('slack-url') // ako želiš Slack notifikaciju
     }
 
     stages {
 
         stage('Build + Test') {
             steps {
-                dir("complete") {
+                dir('complete') {
                     sh 'mvn clean install -DskipTests=false'
                 }
             }
@@ -57,8 +53,8 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and deploy successful!"
-            // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"✅ Jenkins build succeeded!"}\' $SLACK_WEBHOOK'
+            echo "✅ Build and deployment successful!"
+            // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"✅ Jenkins build passed!"}\' $SLACK_WEBHOOK'
         }
         failure {
             echo "💥 Build failed!"
