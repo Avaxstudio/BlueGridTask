@@ -5,7 +5,7 @@ pipeline {
     stage('Build') {
       steps {
         dir('gs-rest-service/complete') {
-          sh 'mvn clean package -DskipTests'
+          sh '/usr/bin/mvn clean package -DskipTests'
         }
       }
     }
@@ -26,4 +26,3 @@ pipeline {
     }
   }
 }
-
