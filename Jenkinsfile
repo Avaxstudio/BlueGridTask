@@ -2,6 +2,7 @@ pipeline {
   agent any
 
   environment {
+    PATH = "/usr/bin:/bin:/usr/local/bin"
     APP_IMAGE = 'gs-rest-app'
     APP_CONTAINER = 'gs-rest-running'
     HOST_PORT = '7777'
@@ -35,13 +36,11 @@ pipeline {
       echo '🧹 Cleaning up container...'
       sh "docker rm -f ${APP_CONTAINER} || true"
     }
-
     success {
       echo '✅ Docker build and run completed successfully!'
     }
-
     failure {
-      echo '❌ Build failed — check logs and Docker setup.'
+      echo '❌ Build failed — check console output for details.'
     }
   }
 }
