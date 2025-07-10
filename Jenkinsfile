@@ -2,70 +2,69 @@ pipeline {
     agent any
 
     tools {
-        maven 'M3'
+        maven 'M3' // definisano u Jenkins → Global Tool Configuration
     }
 
     environment {
-        IMAGE_NAME = "gs-rest-app"
-        CONTAINER_NAME = "gs-rest-running"
-        PORT_MAP = "777:8080"
+        DOCKER_IMAGE = 'gs-rest-app'
+        CONTAINER_NAME = 'gs-rest-running'
+        APP_PORT = '777'
+        GREETING_ENDPOINT = "http://16.16.217.54:${APP_PORT}/greeting"
+        // SLACK_WEBHOOK = credentials('slack-url') // dodaj u Jenkins ako želiš notifikacije
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
 
         stage('Build + Test') {
             steps {
-                dir("complete") {
-                    sh "mvn clean install -DskipTests=false"
+                withEnv(["PATH+MAVEN=${tool 'M3'}/bin"]) {
+                    dir("complete") {
+                        sh 'mvn clean install -DskipTests=false'
+                    }
                 }
             }
         }
 
         stage('Docker Cleanup') {
             steps {
-                sh "docker rm -f $CONTAINER_NAME || true"
+                sh '''
+                    docker rm -f ${CONTAINER_NAME} || true
+                    docker rmi ${DOCKER_IMAGE} || true
+                '''
             }
         }
 
         stage('Docker Build') {
             steps {
-                sh "docker build -t $IMAGE_NAME ."
+                sh 'docker build -t ${DOCKER_IMAGE} .'
             }
         }
 
         stage('Run Container') {
             steps {
-                sh "docker run -d -p $PORT_MAP --name $CONTAINER_NAME $IMAGE_NAME"
+                sh 'docker run -d -p ${APP_PORT}:8080 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}'
             }
         }
 
         stage('Health Check') {
             steps {
-                sh """
+                sh '''
+                    echo "Waiting for app to start..."
                     sleep 5
-                    curl --fail http://localhost:777/greeting || echo '❌ Endpoint unreachable'
-                """
+                    curl --fail ${GREETING_ENDPOINT}
+                '''
             }
         }
-
-        // Optional Slack notification
-        // stage('Slack Notify') {
-        //     steps {
-        //         slackSend(channel: '#gs-rest-service-ci', message: "Build ✅ done", color: 'good')
-        //     }
-        // }
     }
 
     post {
+        success {
+            echo "✅ Build and deploy successful!"
+            // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"✅ Jenkins build succeeded!"}\' $SLACK_WEBHOOK'
+        }
         failure {
             echo "💥 Build failed!"
-            // Optional Slack: slackSend(...)
+            // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"💥 Jenkins build failed!"}\' $SLACK_WEBHOOK'
         }
     }
 }
-
