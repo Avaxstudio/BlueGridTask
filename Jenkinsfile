@@ -1,26 +1,20 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'M3' // definisano u Jenkins → Global Tool Configuration
-    }
-
     environment {
         DOCKER_IMAGE = 'gs-rest-app'
         CONTAINER_NAME = 'gs-rest-running'
         APP_PORT = '777'
         GREETING_ENDPOINT = "http://16.16.217.54:${APP_PORT}/greeting"
-        // SLACK_WEBHOOK = credentials('slack-url') // dodaj u Jenkins ako želiš notifikacije
+        // SLACK_WEBHOOK = credentials('slack-url') // ako želiš Slack notifikacije
     }
 
     stages {
 
         stage('Build + Test') {
             steps {
-                withEnv(["PATH+MAVEN=${tool 'M3'}/bin"]) {
-                    dir("complete") {
-                        sh 'mvn clean install -DskipTests=false'
-                    }
+                dir("complete") {
+                    sh '/usr/bin/mvn clean install -DskipTests=false'
                 }
             }
         }
@@ -49,7 +43,7 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
-                    echo "Waiting for app to start..."
+                    echo "🩺 Waiting for app to start..."
                     sleep 5
                     curl --fail ${GREETING_ENDPOINT}
                 '''
@@ -64,7 +58,7 @@ pipeline {
         }
         failure {
             echo "💥 Build failed!"
-            // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"💥 Jenkins build failed!"}\' $SLACK_WEBHOOK'
+            // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"�� Jenkins build failed!"}\' $SLACK_WEBHOOK'
         }
     }
 }
