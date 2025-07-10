@@ -9,6 +9,12 @@ pipeline {
     }
 
     stages {
+        
+        stage('Docker Check') {
+            steps {
+            sh 'docker version'
+    }
+}
         stage('Docker Cleanup') {
             steps {
                 sh '''
