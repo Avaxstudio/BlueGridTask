@@ -6,20 +6,9 @@ pipeline {
         CONTAINER_NAME = 'gs-rest-running'
         APP_PORT = '777'
         GREETING_ENDPOINT = "http://16.16.217.54:${APP_PORT}/greeting"
-        // SLACK_WEBHOOK = credentials('slack-url')
     }
 
     stages {
-        stage('Build + Test') {
-            steps {
-                withEnv(["PATH=/usr/bin:$PATH"]) {
-                    dir('complete') {
-                        sh 'mvn clean install -DskipTests=false'
-                    }
-                }
-            }
-        }
-
         stage('Docker Cleanup') {
             steps {
                 sh '''
@@ -44,7 +33,6 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
-                    echo "🩺 Checking health..."
                     sleep 5
                     curl --fail ${GREETING_ENDPOINT}
                 '''
@@ -54,12 +42,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and deployment successful!"
-            // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"✅ Jenkins build passed!"}\' $SLACK_WEBHOOK'
+            echo "✅ Build and deploy successful!"
         }
         failure {
-            echo "💥 Build failed. Check mvn, Docker, or health check."
-            // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"💥 Jenkins build failed!"}\' $SLACK_WEBHOOK'
+            echo "💥 Build failed — proveri Dockerfile, port ili health check."
         }
     }
 }
