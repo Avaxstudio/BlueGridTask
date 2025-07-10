@@ -1,11 +1,15 @@
 pipeline {
   agent any
 
+  environment {
+    PATH = "/usr/bin:/bin:/usr/local/bin"
+  }
+
   stages {
     stage('Build') {
       steps {
         dir('gs-rest-service/complete') {
-          sh '/usr/bin/mvn clean package -DskipTests'
+          sh 'mvn clean package -DskipTests'
         }
       }
     }
