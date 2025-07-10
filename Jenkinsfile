@@ -1,5 +1,9 @@
 pipeline {
-  agent any
+  agent {
+    docker {
+      image 'maven:3.9.4'
+    }
+  }
 
   stages {
     stage('Build') {
@@ -7,6 +11,12 @@ pipeline {
         dir('gs-rest-service/complete') {
           sh 'mvn clean package -DskipTests'
         }
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        echo '🚀 Deploy stage stub — spreman za EC2 ili Render kada poželiš!'
       }
     }
   }
@@ -20,3 +30,4 @@ pipeline {
     }
   }
 }
+
