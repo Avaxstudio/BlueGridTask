@@ -7,6 +7,7 @@ pipeline {
         HOST_PORT = '777'
         CONTAINER_PORT = '8080'
         HEALTH_URL = "http://localhost:${HOST_PORT}/greeting"
+        DOCKER = "/usr/bin/docker"
     }
 
     stages {
@@ -18,13 +19,13 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${APP_IMAGE} ."
+                sh "${DOCKER} build -t ${APP_IMAGE} ."
             }
         }
 
         stage('Run Container') {
             steps {
-                sh "docker run -d -p ${HOST_PORT}:${CONTAINER_PORT} --name ${APP_CONTAINER} ${APP_IMAGE}"
+                sh "${DOCKER} run -d -p ${HOST_PORT}:${CONTAINER_PORT} --name ${APP_CONTAINER} ${APP_IMAGE}"
             }
         }
 
@@ -40,10 +41,10 @@ pipeline {
 
     post {
         always {
-            sh "docker rm -f ${APP_CONTAINER} || true"
+            sh "${DOCKER} rm -f ${APP_CONTAINER} || true"
         }
         success {
-            echo "✅ Build and deploy successful!"
+            echo "✅ Build and deployment successful!"
         }
         failure {
             echo "💥 Build failed — proveri Docker build, port binding ili health check."
