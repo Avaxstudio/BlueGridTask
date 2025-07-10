@@ -6,15 +6,16 @@ pipeline {
         CONTAINER_NAME = 'gs-rest-running'
         APP_PORT = '777'
         GREETING_ENDPOINT = "http://16.16.217.54:${APP_PORT}/greeting"
-        // SLACK_WEBHOOK = credentials('slack-url') // ako želiš Slack notifikaciju
+        // SLACK_WEBHOOK = credentials('slack-url') // ako koristiš Slack notifikacije
     }
 
     stages {
-
         stage('Build + Test') {
             steps {
-                dir('complete') {
-                    sh 'mvn clean install -DskipTests=false'
+                withEnv(["PATH+MAVEN=${tool 'M3'}/bin"]) {
+                    dir('complete') {
+                        sh 'mvn clean install -DskipTests=false'
+                    }
                 }
             }
         }
@@ -43,7 +44,7 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
-                    echo "🩺 Waiting for app to start..."
+                    echo "🩺 Waiting for app to boot..."
                     sleep 5
                     curl --fail ${GREETING_ENDPOINT}
                 '''
@@ -53,11 +54,11 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and deployment successful!"
+            echo "✅ Build + Docker deploy prošli su bez greške!"
             // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"✅ Jenkins build passed!"}\' $SLACK_WEBHOOK'
         }
         failure {
-            echo "💥 Build failed!"
+            echo "💥 Build se srušio. Proveri mvn, docker, health check."
             // sh 'curl -X POST -H "Content-Type: application/json" --data \'{"text":"💥 Jenkins build failed!"}\' $SLACK_WEBHOOK'
         }
     }
